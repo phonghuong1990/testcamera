@@ -13,7 +13,7 @@ import math
 import cv2
 import numpy as np
 import tensorflow.compat.v1 as tf
-from picamera2 import Picamera2, Preview  # Thêm thư viện cho camera Raspberry Pi
+from picamera2 import PiCamera2, Preview  # Thêm thư viện cho camera Raspberry Pi
 from sklearn.svm import SVC
 
 import detect_face
@@ -62,15 +62,23 @@ def main():
             people_detected = set()
             person_detected = collections.Counter()
 
-            with Picamera2() as camera:  # Khởi tạo camera Raspberry Pi
-                camera_config = camera.create_preview_configuration() 
-                camera.configure(camera_config) 
-                camera.start_preview(Preview.QTGL) 
-                camera.start() 
+            with PiCamera2() as picam2:  # Khởi tạo camera Raspberry Pi
+                dispW = 1020
+                dispH = 600
+
+                # Thiết lập cấu hình xem trước
+                picam2.preview_configuration.main.size = (dispW, dispH)
+                picam2.preview_configuration.main.format = "RGB888"
+                picam2.preview_configuration.controls.FrameRate = 30
+                picam2.preview_configuration.align()
+
+                # Cấu hình và bắt đầu xem trước
+                picam2.configure("preview")
+                picam2.start()
                 time.sleep(2)  # Đợi 2 giây để camera ổn định
 
                 while True:
-                    frame = camera.capture()
+                    frame = picam2.capture()
                     frame = imutils.resize(frame, width=600)
                     frame = cv2.flip(frame, 1)
 
